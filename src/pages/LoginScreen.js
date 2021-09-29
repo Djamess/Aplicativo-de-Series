@@ -48,6 +48,31 @@ export default class LoginScreen extends React.Component {
                 this.setState({ message: "Login efetuado com sucesso!" })
             })
             .catch(error => {
+                if (error.code === 'auth/user-not-found') {
+                    Alert.alert(
+                        'Usuário não encontrado',
+                        'Deseja criar um cadastro com as informações inseridas?',
+                        [{
+                            text: 'Não', onPress: () => console.log('Usuário não quer criar conta'),
+                            style: 'cancel' //IOS
+                        }, {
+                            text: 'Sim', onPress: () => {
+                                firebase
+                                    .auth()
+                                    .createUserWithEmailAndPassword(mail, password)
+                                    .then(user => {
+                                        this.setState({ message: 'Sucesso!' })
+                                    })
+                                    .catch(error => {
+                                        this.setState({
+                                            message: this.getMessageByErrorCode(error.code)
+                                        })
+                                    })
+                            }
+                        }],
+                        { cancelable: false }
+                    )
+                }
                 this.setState({
                     message: this.getMessageByErrorCode(error.code)
                 })
@@ -64,18 +89,15 @@ export default class LoginScreen extends React.Component {
             .then(user => {
                 this.setState({ message: "Cadastro realizado com sucesso!" })
             })
-            .catch(error => {
-                this.setState({
-                    message: this.getMessageByErrorCode(error.code)
-                })
-            })
+
+
     }
 
     getMessageByErrorCode(errorCode) {
         switch (errorCode) {
             case 'auth/wrong-password':
                 return 'Senha incorreta'
-            case 'auth/invalid-email':
+            case 'auth/user-not-found':
                 return 'Usuário não encontrado'
             case 'auth/weak-password':
                 return 'A senha é muito fraca'
@@ -193,7 +215,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: '#fff'
+        borderColor: '#FF0000'
     }
 
 })
